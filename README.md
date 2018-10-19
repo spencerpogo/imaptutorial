@@ -14,7 +14,7 @@ SMTP stands for Simple Mail Transfer Protocol.  It is the standard protocol used
 To implement IMAP we will be using the third-party module ```imapclient``` (docs [here](https://imapclient.readthedocs.io/en/2.1.0/)).  
 
 ### Connecting to the Server
-Most servers can be found with a simple google search of *<your provider> imap settings*, but here are the most common ones:  
+Most servers can be found with a simple google search of "*your provider* imap settings", but here are the most common ones:  
 
 **Gmail:** imap.gmail.com  
 **Outlook.com/Hotmail.com:** imap-mail.outlook.com  
@@ -61,16 +61,43 @@ When you fetch an email, you download it from the server.  Unless you are using 
 ```python
 rawmsgs = i.fetch(uids, ['BODY[]']) # uids is the uids returned by search()
 ```
-The object returned by fetch is complicated and hard to parse, so we will be using a second third-party module, ```pyzmail``` to parse them.  **Important: If you are installing pyzmail on python 3.6 or above, you need to install ```pyzmail36``` instead of ```pymail``` or you will get an error in pip. **
+The object returned by fetch is complicated and hard to parse, so we will be using a second third-party module, ```pyzmail``` to parse them.  **Important: If you are installing pyzmail using pip on python 3.6 or above, you need to install ```pyzmail36``` instead of ```pymail``` or you will get an error in pip. **
 This is how you parse a message with pyzmail:
 ```python
 import pyzmail
 msg = pyzmail.PyzMessage.factory(rawmsgs[40041]['BODY[]']) # Be sure to change the uid number
 ```
 Using this object you can get a lot of information on the message.  
+```python
+msg.get_subject()
+msg.get_addresses('from')
+msg.get_addresses('to')
+msg.get_addresses('cc')
+msg.get_addresses('bcc') # TODO: Check this
 ```
->>> msg.get_subject()
-'Thanks! '
->>> msg.get_addresses('from')
-'bob@example.com'
->>> msg.get_addresses('to')
+Sample Output: 
+```
+Thanks! 
+[('Alice Doe', 'alice@example.com')]
+[('Bob Smith', 'bob@example.com')]
+[]
+[]
+```
+These methods get the subject and addresses the message was sent to.  
+### Reading Messages
+```python
+msg.text_part != None
+msg.text_part.get_payload().decode(msg.text_part.charset)
+msg.html_part != None
+msg.html_part.get_payload().decode(msg.html_part.charset)
+```
+Sample Output:
+```
+True
+'Thanks for buying lunch yesterday. \r\n\r\n-Alice\r\n'
+True
+'<div style="font-family: courier;">Thanks for buying lunch yesterday. <br><br>-Alice</div>'
+```
+Email messages can have 2 parts: a text part and an HTML part.  In pyzmail, they will either be ```None``` if it doesn't exist or if it does exist it will have a ```get_payload()``` method which returns ```bytes``` which can be decoded using ```.decode()``` with the charset stored in either ```msg.text_part.charset``` or ```msg.html_part.charset```.  The text part is plaintext, the HTML part is HTML to be rendered for the user.  
+## SMTP in python basics
+SMTP is simpler than than IMAP in many ways.  
