@@ -1,8 +1,5 @@
-# How to make a python program to read and respond to emails
-Hey guys!
-
-In this tutorial we will be learning how to make a python program that can login and read emails from our email account using IMAP and send messages using SMTP! 
-The possible applications of this are endless, from email bots to an email shell! 
+# How to make a python email reply bot
+In this tutorial we will be learning how to make a python program that can read emails and respond based on the content.  Once you have the fundamentals of the program, you can write your own functions to do anything.  I will provide a 2 examples: a weather bot and a remote commands/shell script executor (useful on your own machine rather than repl.it)
 
 ### What is IMAP?
 IMAP stands for Ineternet Mail Access Protocol. Almost all email clients, even web based ones, login to your email providers email server using IMAP.  With IMAP there are folders to organize emails and emails stay on the server unless explicitly deleted.  
@@ -62,6 +59,7 @@ When you fetch an email, you download it from the server.  Unless you are using 
 rawmsgs = i.fetch(uids, ['BODY[]']) # uids is the uids returned by search()
 ```
 The object returned by fetch is complicated and hard to parse, so we will be using a second third-party module, ```pyzmail``` to parse them.  **Important: If you are installing pyzmail using pip on python 3.6 or above, you need to install ```pyzmail36``` instead of ```pymail``` or you will get an error in pip. **
+
 This is how you parse a message with pyzmail:
 ```python
 import pyzmail
@@ -83,6 +81,7 @@ Thanks!
 ```
 These methods get the subject and addresses the message was sent to.  
 ### Reading Messages
+
 ```python
 msg.text_part != None
 msg.text_part.get_payload().decode(msg.text_part.charset)
@@ -100,13 +99,29 @@ Email messages can have 2 parts: a text part and an HTML part.  In pyzmail, they
 ## SMTP in python basics
 SMTP is similar to IMAP, but doesn't have as many commands.  To implement SMTP, we will be using the python built in library, ```smtplib```.  
 ### Connecting to the server
-You should first find your providers SMTP settings by finding them in the list below or searching "*your provider* smtp settings".  
+You should first find your providers SMTP settings by finding them in the list below or searching *your provider* smtp settings.  
 ## **TODO: ADD SMTP SETTINGS LIST**
+
 Once you have your settings, you can connect to the server by initializing a new ```smtplib.SMTP()``` object and starting TLS:
 ```python
 s = smtplib.SMTP('smtp.example.com')
 s.starttls()
 s.ehlo()
 ```
+## TODO: finish tutorial
 
-  
+## Putting it all together: making the bot
+Using our knowledge, we are going to write the bot.  First thing we need to do is store the configuration information.  For repl.it, we will use ```input()``` but on your own computer you can hard-code values (not passwords! ).  
+
+Add a new file in repl.it called ```config.py``` and add the following: 
+```python
+############
+# ACCOUNTS #
+############
+radr = 'bob@example.com'  # address to check and send from
+imapserver = 'imap.example.com'  # imap server for account
+smtpserver = 'smtp.example.com'  # smtp server for account
+smtpserverport = 587  # smtp server port for starttls
+pwd = b'bXlwYXNz'  # password for account encoded with base64.b64encode
+sadr = 'alice@example.com'  # address to receive commands from
+```
