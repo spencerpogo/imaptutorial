@@ -73,14 +73,12 @@ msg.get_subject()
 msg.get_addresses('from')
 msg.get_addresses('to')
 msg.get_addresses('cc')
-msg.get_addresses('bcc') # TODO: Check this
 ```
 Sample Output: 
 ```
 Thanks! 
 [('Alice Doe', 'alice@example.com')]
 [('Bob Smith', 'bob@example.com')]
-[]
 []
 ```
 These methods get the subject and addresses the message was sent to.  
@@ -100,4 +98,15 @@ True
 ```
 Email messages can have 2 parts: a text part and an HTML part.  In pyzmail, they will either be ```None``` if it doesn't exist or if it does exist it will have a ```get_payload()``` method which returns ```bytes``` which can be decoded using ```.decode()``` with the charset stored in either ```msg.text_part.charset``` or ```msg.html_part.charset```.  The text part is plaintext, the HTML part is HTML to be rendered for the user.  
 ## SMTP in python basics
-SMTP is simpler than than IMAP in many ways.  
+SMTP is similar to IMAP, but doesn't have as many commands.  To implement SMTP, we will be using the python built in library, ```smtplib```.  
+### Connecting to the server
+You should first find your providers SMTP settings by finding them in the list below or searching "*your provider* smtp settings".  
+## **TODO: ADD SMTP SETTINGS LIST**
+Once you have your settings, you can connect to the server by initializing a new ```smtplib.SMTP()``` object and starting TLS:
+```python
+s = smtplib.SMTP('smtp.example.com')
+s.starttls()
+s.ehlo()
+```
+
+  
