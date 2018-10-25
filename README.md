@@ -115,13 +115,17 @@ Using our knowledge, we are going to write the bot.  First thing we need to do i
 
 Add a new file in repl.it called ```config.py``` and add the following: 
 ```python
+import getpass
 ############
 # ACCOUNTS #
 ############
-radr = 'bob@example.com'  # address to check and send from
-imapserver = 'imap.example.com'  # imap server for account
-smtpserver = 'smtp.example.com'  # smtp server for account
-smtpserverport = 587  # smtp server port for starttls
-pwd = b'bXlwYXNz'  # password for account encoded with base64.b64encode
-sadr = 'alice@example.com'  # address to receive commands from
+radr = input("Adresses to log in to")  # address to check and send from
+imapserver = input("SMTP server domain: ")  # imap server for account
+smtpserver = input("SMTP server domain: ")  # smtp server for account
+smtpserverport = input("SMTP Server port: [587]")  # smtp server port for starttls
+if not port or port == "":
+    smtpserverport = 587
+pwd =  getpass.getpass("Account password: ") # password for account encoded with base64.b64encode
+sadr = input("Trusted addresses to receive from: ")  # address to receive commands from
 ```
+Here we set the config values to be used by the main program.  
