@@ -54,11 +54,11 @@ imaplib._MAXLINE = 1000000
 ```
 This sets the limit to 10,000,000 bytes instead of 10,000.
 ### Fetching emails
-When you fetch an email, you download it from the server.  Unless you are using ```readonly=True```, when you fetch an email it will mark it as read.  You fetch an email like this: 
+When you fetch an email, you download it from the server.  Unless you are using ```readonly=True```, when you fetch an email it will mark it as read.  You fetch an email like this:
 ```python
 rawmsgs = i.fetch(uids, ['BODY[]']) # uids is the uids returned by search()
 ```
-The object returned by fetch is complicated and hard to parse, so we will be using a second third-party module, ```pyzmail``` to parse them.  **Important: If you are installing pyzmail using pip on python 3.6 or above, you need to install ```pyzmail36``` instead of ```pymail``` or you will get an error in pip. **
+The object returned by fetch is complicated and hard to parse, so we will be using a second third-party module, ```pyzmail``` to parse them.  ** Important: If you are installing pyzmail using pip on python 3.6 or above, you need to install ```pyzmail36``` instead of ```pymail``` or you will get an error in pip. **
 
 This is how you parse a message with pyzmail:
 ```python
@@ -72,9 +72,9 @@ msg.get_addresses('from')
 msg.get_addresses('to')
 msg.get_addresses('cc')
 ```
-Sample Output: 
+Sample Output:
 ```
-Thanks! 
+Thanks!
 [('Alice Doe', 'alice@example.com')]
 [('Bob Smith', 'bob@example.com')]
 []
@@ -95,14 +95,22 @@ True
 True
 '<div style="font-family: courier;">Thanks for buying lunch yesterday. <br><br>-Alice</div>'
 ```
-Email messages can have 2 parts: a text part and an HTML part.  In pyzmail, they will either be ```None``` if it doesn't exist or if it does exist it will have a ```get_payload()``` method which returns ```bytes``` which can be decoded using ```.decode()``` with the charset stored in either ```msg.text_part.charset``` or ```msg.html_part.charset```.  The text part is plaintext, the HTML part is HTML to be rendered for the user.  
+Email messages can have 2 parts: a text part and an HTML part.  In pyzmail, they
+ will either be ```None``` if it doesn't exist or if it does exist it will have
+ a ```get_payload()``` method which returns ```bytes``` which can be decoded
+ using ```.decode()``` with the charset stored in either ```msg.text_part.charset```
+ or ```msg.html_part.charset```.  The text part is plaintext, the HTML part is
+ HTML to be rendered for the user.  
 ## SMTP in python basics
-SMTP is similar to IMAP, but doesn't have as many commands.  To implement SMTP, we will be using the python built in library, ```smtplib```.  
+SMTP is similar to IMAP, but doesn't have as many commands.  To implement SMTP,
+we will be using the python built in library, ```smtplib```.  
 ### Connecting to the server
-You should first find your providers SMTP settings by finding them in the list below or searching *your provider* smtp settings.  
+You should first find your providers SMTP settings by finding them in the list
+below or searching *your provider* smtp settings.  
 ## **TODO: ADD SMTP SETTINGS LIST**
 
-Once you have your settings, you can connect to the server by initializing a new ```smtplib.SMTP()``` object and starting TLS:
+Once you have your settings, you can connect to the server by initializing a new
+ ```smtplib.SMTP()``` object and starting TLS:
 ```python
 s = smtplib.SMTP('smtp.example.com')
 s.starttls()
@@ -111,9 +119,12 @@ s.ehlo()
 ## TODO: finish tutorial
 
 ## Putting it all together: making the bot
-Using our knowledge, we are going to write the bot.  First thing we need to do is store the configuration information.  For repl.it, we will use ```input()``` but on your own computer you can hard-code values (not passwords! ).  
+Using our knowledge, we are going to write the bot.  First thing we need to do
+is store the configuration information.  For repl.it, we will use ```input()```
+but on your own computer you can hard-code values (not passwords! ).  
 
-Add a new file in repl.it called ```config.py``` and add the following: 
+### Using a configuration file
+Add a new file in repl.it called ```config.py``` and add the following:
 ```python
 import getpass
 ############
@@ -122,10 +133,71 @@ import getpass
 radr = input("Adresses to log in to")  # address to check and send from
 imapserver = input("SMTP server domain: ")  # imap server for account
 smtpserver = input("SMTP server domain: ")  # smtp server for account
-smtpserverport = input("SMTP Server port: [587]")  # smtp server port for starttls
+smtpserverport = input("SMTP Server port [587]: ")  # smtp server port for starttls
 if not port or port == "":
     smtpserverport = 587
 pwd =  getpass.getpass("Account password: ") # password for account encoded with base64.b64encode
 sadr = input("Trusted addresses to receive from: ")  # address to receive commands from
 ```
-Here we set the config values to be used by the main program.  
+Here we set the config values to be used by the main program.  For security, we
+will set a trusted email that is the only one that commands will be accepted
+from.  This is so that no random people can email us commands.  
+
+### Initializing the IMAP connection
+```python
+from config import *
+
+def imap_init():
+    """
+    Initialize IMAP connection
+    """
+    print("Initializing IMAP... ", end='')
+    global i
+    i = imapclient.IMAPClient(imapserver)
+    c = i.login(radr, pwd)
+    i.select_folder("INBOX")
+    print("Done. ")
+```
+Here we initialize the imap connection by import our config file
+(using ```import *``` is usually a bad idea because you don't know where things
+came from but we are just importing variables so it is okay).  
+We also define i using ```global i``` so that it is available to the rest of our
+ program.  We also login to the server and select the "INBOX" folder.  
+### Initializing the SMTP connection
+```python
+def smtp_init():
+    """
+    Initialize SMTP connection
+    """
+    print("Initializing SMTP...")
+    global s
+    s = smtplib.SMTP(smtpserver, smtpserverport)
+    c = s.starttls()[0]  # The returned status code
+    if c is not 220:
+        raise Exception('Starting tls failed: ' + str(c))
+    c = s.login(radr, pwd)[0]
+    if c is not 235:
+        raise Exception('SMTP login failed: ' + str(c))
+    print("Done. ")
+```
+In this block, we initialize the SMTP connection.  We use the same ```global```
+technique as with IMAP and connect to the SMTP server and login, but we also
+check the status codes returned by the server to make sure everything was
+successful (we can't do this with IMAP).  
+
+### Getting unread emails
+```python
+def get_unread():
+    """
+    Fetch unread emails
+    """
+    uids = i.search(['UNSEEN'])
+    if not uids:
+        return None
+    else:
+        print("Found %s unreads" % len(uids))
+        return i.fetch(uids, ['BODY[]', 'FLAGS'])
+```
+Here we define a function to get unread emails.  This function searches the IMAP
+object for any unread emails.  It returns ```None``` if it didn't find any, or
+if it did, it fetches them from the server and returns them.  
