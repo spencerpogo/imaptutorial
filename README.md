@@ -2,7 +2,7 @@
 In this tutorial we will be learning how to make a python program that can read emails and respond based on the content.  Once you have the fundamentals of the program, you can write your own functions to do anything.  I will provide a 2 examples: a weather bot and a remote commands/shell script executor (useful on your own machine rather than repl.it).  Sorry for the tutorial being so long.  If you just want to get to the bot, skip the "IMAP in Python Basics" section and the "SMTP in Python Basics" sections.  
 
 ### What is IMAP?
-IMAP stands for Ineternet Mail Access Protocol. Almost all email clients, even web based ones, login to your email providers email server using IMAP.  With IMAP there are folders to organize emails and emails stay on the server unless explicitly deleted.  
+IMAP stands for Internet Mail Access Protocol. Almost all email clients, even web based ones, login to your email providers email server using IMAP.  With IMAP there are folders to organize emails and emails stay on the server unless explicitly deleted.  
 
 ### What is SMTP?
 SMTP stands for Simple Mail Transfer Protocol.  It is the standard protocol used for sending emails across the internet.  SMTP is used to both send and receive emails, but we will only be sending.  
