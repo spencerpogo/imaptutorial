@@ -7,6 +7,8 @@ IMAP stands for Internet Mail Access Protocol. Almost all email clients, even we
 ### What is SMTP?
 SMTP stands for Simple Mail Transfer Protocol.  It is the standard protocol used for sending emails across the internet.  SMTP is used to both send and receive emails, but we will only be sending.  
 
+
+
 ## IMAP in Python Basics
 To implement IMAP we will be using the third-party module ```imapclient``` (docs [here](https://imapclient.readthedocs.io/en/2.1.0/)).  
 
@@ -28,7 +30,7 @@ i = imapclient.IMAPClient('imap-mail.outlook.com') # i is easy to type
 ### Logging in
 Logging in is very simple.    
 ```python
-i.login("myemailaddress@outlook.com", "mySuperSecretPassword")
+i.login('bob@example.com', 'mySuperSecretPassw0rd')
 ```
 The ```i.login()``` function is pretty self-explanatory, it logs in using the email and password provided.  
 
@@ -46,13 +48,15 @@ i.search(['UNSEEN'])
 ```
 This will not return the emails themselves, but a list of unique IDs or UIDs, for example ```[40032, 40033, 40034]``` which we are about to use.  
 You can also use a special method if you are using Gmail, ```i.gmail_search()``` which behaves like the search box in Gmail.  
+
 #### Size Limits
 If your search matches lots of messages, you can get an ```imaplib.erorr: got more than 10000 bytes```.  This can be fixed by the following code:
 ```python
 import imaplib
 imaplib._MAXLINE = 1000000
 ```
-This sets the limit to 10,000,000 bytes instead of 10,000.
+This sets the limit to 10,000,000 bytes instead of 10,000.  
+
 ### Fetching emails
 When you fetch an email, you download it from the server.  Unless you are using ```readonly=True```, when you fetch an email it will mark it as read.  You fetch an email like this:
 ```python
@@ -101,6 +105,9 @@ Email messages can have 2 parts: a text part and an HTML part.  In pyzmail, they
  using ```.decode()``` with the charset stored in either ```msg.text_part.charset```
  or ```msg.html_part.charset```.  The text part is plaintext, the HTML part is
  HTML to be rendered for the user.  
+ 
+ 
+ 
 ## SMTP in python basics
 SMTP is similar to IMAP, but doesn't have as many commands.  To implement SMTP,
 we will be using the python built in library, ```smtplib```.  
@@ -112,11 +119,53 @@ below or searching *your provider* smtp settings.
 Once you have your settings, you can connect to the server by initializing a new
  ```smtplib.SMTP()``` object and starting TLS:
 ```python
-s = smtplib.SMTP('smtp.example.com')
+s = smtplib.SMTP('smtp.example.com', 587)
 s.starttls()
 s.ehlo()
 ```
-## TODO: finish tutorial
+### Troubleshooting
+If you get an error while connecting or if your email provider is listed above 
+as *port 465* then your email provider may not support TLS on port 587.  In 
+this case, you should connect using SSL to port 465 like this:  
+```
+s = smtplib.SMTP_SSL('smtp.example.com', 465)
+s.ehlo()
+```
+### Logging in
+Logging in is similar to IMAP, you call the ```login()``` function of your SMTP
+connection, using your email and password: **Be careful about leaving passwords
+in your code!**
+```
+s.login('bob@example.com', 'mySuperSecretPassw0rd')
+```
+### Sending emails
+To send emails, I have found that the ```sendmail()``` function doesn't really
+work as it can mess with email headers, instead we should use the python 
+built-in module ```email```'s ```email.message.EmailMessage()``` class which
+makes settings the headers really easy and has many advanced capabilities which
+are listed in [the docs](https://docs.python.org/3/library/email.message.html#email.message.EmailMessage).  
+Here is an example of how to send a text message:
+```python
+text = """Dear Alice,
+You are welcome.  Think nothing of it! 
+
+-Bob
+"""
+msg = email.message.EmailMessage()
+msg['from'] = 'bob@example.com'
+msg["to"] = 'alice@example.com'
+msg["Subject"] = "Re: Thanks! "
+msg.set_content(text)
+res = s.send_message(msg)
+```
+In most email providers, though not required, prefacing the subject with Re:
+denotes a reply.  In this example, Re: Thanks! would show up in the same
+thread as the original Thanks! message in both email clients.  To return
+value of the ```send_message()``` function is a dictionary of the addresses
+to which sending failed.  If successful, it should return ```{}```.  
+
+
+
 
 ## Putting it all together: making the bot
 Using our knowledge, we are going to write the bot.  First thing we need to do
