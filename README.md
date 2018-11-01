@@ -181,17 +181,16 @@ but on your own computer you can hard-code values (not passwords! ).
 Add a new file in repl.it called ```config.py``` and add the following:
 ```python
 import getpass
-############
-# ACCOUNTS #
-############
+
 radr = input("Adresses to log in to")  # address to check and send from
-imapserver = input("SMTP server domain: ")  # imap server for account
+imapserver = input("IMAP server domain: ")  # imap server for account
 smtpserver = input("SMTP server domain: ")  # smtp server for account
 smtpserverport = input("SMTP Server port [587]: ")  # smtp server port for starttls
-if not port or port == "":
+if not smtpserverport or smtpserverport == "":
     smtpserverport = 587
 pwd =  getpass.getpass("Account password: ") # password for account encoded with base64.b64encode
 sadr = input("Trusted addresses to receive from: ")  # address to receive commands from
+check_freq = 5
 ```
 Here we set the config values to be used by the main program.  For security, we
 will set a trusted email that is the only one that commands will be accepted
@@ -508,3 +507,6 @@ To add these commands to the bot, and to define you own, paste the functions
 into ```emailcmd_config.py``` and update the the ```commands``` dictionary at
 the bottom by putting the key as the alias for the command and the value as the
 function object.  
+```
+commands = {"weather":weather, "exec":exec_cmd, "script":runscript}
+```
