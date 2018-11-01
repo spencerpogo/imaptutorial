@@ -114,7 +114,12 @@ we will be using the python built in library, ```smtplib```.
 ### Connecting to the server
 You should first find your providers SMTP settings by finding them in the list
 below or searching *your provider* smtp settings.  
-## **TODO: ADD SMTP SETTINGS LIST**
+**Gmail:** imap.gmail.com  
+**Outlook.com/Hotmail.com:** imap-mail.outlook.com  
+**Yahoo.com:** imap.mail.yahoo.com  
+**AT&T:** imap.mail.att.net  
+**Comcast:** imap.comcast.net  
+**Verizon:** incoming.verizon.net  
 
 Once you have your settings, you can connect to the server by initializing a new
  ```smtplib.SMTP()``` object and starting TLS:
