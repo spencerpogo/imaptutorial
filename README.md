@@ -341,39 +341,52 @@ imap_init()
 smtp_init()
 
 while True:  # Main loop
-```
-Next, we will check for any unread messages and analyze them.  (You will see why
-it is in a ```try:``` block later)
-```python
     try:
-          print()  # Blank line for clarity
-          msgs = get_unread()
-          while msgs is None:
-              time.sleep(check_freq)
-              msgs = get_unread()
-          for a in msgs.keys():
-              if type(a) is not int:
-                  continue
-              cmds = analyze_msg(msgs, a)
+        print()  # Blank line for clarity
+        msgs = get_unread()
+        while msgs is None:
+            time.sleep(check_freq)
+            msgs = get_unread()
+        for a in msgs.keys():
+            if type(a) is not int:
+                continue
+            cmds = analyze_msg(msgs, a)
+            if cmds is None:
+                continue
+            elif cmds is False:  # Invalid Command
+                t = "The command is invalid. The commands are: \n"
+                for l in commands.keys():
+                    t = t + str(l) + "\n"
+                mail(t)
+                continue
+            else:
+                print("Command received: \n%s" % cmds)
+                r = commands[cmds[0]](cmds)
+            mail(str(r))
+            print("Command successfully completed! ")
+    except KeyboardInterrupt:
+        i.logout()
+        s.quit()
+        break
+    except OSError:
+        imap_init()
+        continue
+    except smtplib.SMTPServerDisconnected:
+        smtp_init()
+        continue
+    finally:
+        i.logout()
+        s.quit()
 ```
-We get the messages, and if there are none, we enter a loop that won't exit
-until a new message arrives, and waits for the ```check_freq``` amount of time
-before checking again.  Once we have found a message, we analyze it.  
-```python
-              if cmds is None:
-                  continue
-              elif cmds is False:  # Invalid Command
-                  t = "The command is invalid. The commands are: \n"
-                  for l in commands.keys():
-                      t = t + str(l) + "\n"
-                  mail(t)
-                  continue
-              else:
-                  print("Command received: \n%s" % cmds)
-                  r = commands[cmds[0]](cmds)
-              mail(str(r))
-              print("Command successfully completed! ")
-```
+This is a long code block, so let's break it down.  First we check for unread 
+messages and if there are none, then we wil get into a loop waiting for one.  
+Next we loop over each of the unreads we have retrieved and analyze them.  (there
+are a lot of loops in this portion).  We then check the value returned by ```analyze_message()```
+and if it was ```False``` meaning an invalid comand we send the user a helpful
+message detailing the available comands.  If it was ```None``` meaning it is
+not from the trusted sender or has an invalid ```text_part``` we will skip it
+and continue the loop.  
+
 Here we check the return value from ```analyze_msg()```.  If it is None (meaning
 it is not from the trusted sender or doesn't have a text part) we skip it and
 continue to the next message.  If it is False, meaning it is an invalid command,
